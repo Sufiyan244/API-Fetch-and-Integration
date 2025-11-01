@@ -1,37 +1,52 @@
 let Api = "https://fakestoreapi.com/products";
-const productContainer = document.getElementById("product-container");
-const loading = document.getElementById("loading");
 
 async function getApi(url) {
   try {
-    const response = await fetch(url);
-    const data = await response.json();
+    // Show loading spinner
+    document.getElementById("loading").style.display = "block";
 
-    // Hide loading spinner
-    loading.style.display = "none";
+    let response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-    // Display products
-    data.forEach(product => {
-      const card = document.createElement("div");
-      card.classList.add("col-md-3", "col-sm-6");
-
-      card.innerHTML = `
-        <div class="card h-100 shadow-sm">
-          <img src="${product.image}" class="card-img-top" alt="${product.title}">
-          <div class="card-body">
-            <h6 class="card-title text-truncate">${product.title}</h6>
-            <p class="price">$${product.price}</p>
-            <button class="btn btn-primary w-100">View Details</button>
-          </div>
-        </div>
-      `;
-      productContainer.appendChild(card);
-    });
+    let data = await response.json();
+    displayProducts(data);
 
   } catch (error) {
-    console.error("Error fetching API:", error);
-    loading.innerHTML = `<p class="text-danger">⚠️ Failed to load products. Please try again.</p>`;
+    console.error("Error fetching data:", error);
+    document.getElementById("loading").innerHTML = `
+      <div class="alert alert-danger">Failed to load products. Please try again later.</div>
+    `;
+  } finally {
+    // Hide loading spinner after loading
+    document.getElementById("loading").style.display = "none";
   }
+}
+
+// Function to display products in cards
+function displayProducts(products) {
+  let container = document.getElementById("product-container");
+  container.innerHTML = "";
+
+  products.forEach((product) => {
+    let card = document.createElement("div");
+    card.classList.add("col-sm-6", "col-md-4", "col-lg-3");
+
+    card.innerHTML = `
+      <div class="card product-card h-100">
+        <img src="${product.image}" class="card-img-top product-img" alt="${product.title}">
+        <div class="card-body d-flex flex-column">
+          <h6 class="card-title text-truncate text-center" title="${product.title}">${product.title}</h6>
+          <p class="card-text text-muted small text-center">${product.category}</p>
+          <p class="price mb-2 text-center">$${product.price}</p>
+          <button class="btn btn-primary mt-auto">Add to cart</button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
 }
 
 getApi(Api);
